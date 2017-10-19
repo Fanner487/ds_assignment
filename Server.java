@@ -83,49 +83,77 @@ class ClientHandler extends Thread{
 
 	public void broadcast(String message){
 
-		// if(isValidBid(newBid)){
+		try{
+
+			synchronized(this){
+				int newBid = Integer.parseInt(message);
+
+				if(isValidBid(newBid)){
+
+				bidItem.setCurrentBid(newBid);
+				bidItem.setCurrentBidder(bidder.getName());
+
 			
-		// }
+					for(Bidder bi : bidders){
+
+						output = new PrintWriter(bi.getSocket().getOutputStream(), true);
+						output.println("Allowed: " + newBid);
+						output.println("Current bidder: " + bidItem.getCurrentBidder());
+						output.println("Current bid: " + bidItem.getCurrentBid());	
+					}
+				}
+				else{
+					output = new PrintWriter(bidder.getSocket().getOutputStream(),true);
+					output.println("Bid too low!");
+				}
+
+			}
+		}
+		catch(IOException e){
+				e.printStackTrace();
+		}
+
+		
 
 		// Problem may lie in here with the loop
-		for(Bidder bi : bidders){
+		// for(Bidder bi : bidders){
 			
-			try{
-				synchronized(this){
+		// 	try{
+		// 		synchronized(this){
 
-					output = new PrintWriter(bi.getSocket().getOutputStream(),true);
+		// 			output = new PrintWriter(bi.getSocket().getOutputStream(),true);
 
-					int newBid = Integer.parseInt(message);
+		// 			int newBid = Integer.parseInt(message);
 
-					System.out.println("Calling by: " + bi.getName());
-					if(isValidBid(newBid)){
+		// 			System.out.println("Calling by: " + bi.getName());
+		// 			if(isValidBid(newBid)){
 
-						bidItem.setCurrentBid(newBid);
-						bidItem.setCurrentBidder(bidder.getName());
+		// 				bidItem.setCurrentBid(newBid);
+		// 				bidItem.setCurrentBidder(bidder.getName());
 
-						// output.println("Allowed: " + newBid);
-						output.println("Current bidder: " + bidItem.getCurrentBidder());
-						output.println("Current bid: " + bidItem.getCurrentBid());
+		// 				// output.println("Allowed: " + newBid);
+		// 				output.println("Current bidder: " + bidItem.getCurrentBidder());
+		// 				output.println("Current bid: " + bidItem.getCurrentBid());
 
-					}
-					else{
-						// output.println("Not Allowed: " + message);
-						PrintWriter tooLowOutput = new PrintWriter(bidder.getSocket().getOutputStream(),true);
-						if(bi == bidder){
-							tooLowOutput.println("Bid too low!");
-						}
+		// 			}
+		// 			else{
+		// 				// output.println("Not Allowed: " + message);
+		// 				PrintWriter tooLowOutput = new PrintWriter(bidder.getSocket().getOutputStream(),true);
+		// 				if(bi == bidder){
+		// 					tooLowOutput.println("Bid too low!");
+		// 				}
 						
-						// output.println("Current bidder: " + bidItem.getCurrentBidder());
-						// output.println("Current bid: " + bidItem.getCurrentBid());
-					}
+		// 				// output.println("Current bidder: " + bidItem.getCurrentBidder());
+		// 				// output.println("Current bid: " + bidItem.getCurrentBid());
+		// 			}
 					
 					
-				}
-			}catch(IOException e){
-				e.printStackTrace();
-			}
+		// 		}
+		// 	}catch(IOException e){
+		// 		e.printStackTrace();
+		// 	}
 			
-		}
+		// }
 	}
 
 	public void run(){
