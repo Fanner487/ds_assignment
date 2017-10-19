@@ -85,7 +85,7 @@ class ServerListener extends Thread{
 			while(true){
 				response = networkInput.nextLine();
 				System.out.println("\nSERVER> " + response);
-				this.sleep(1000);
+				this.sleep(200);
 			}
 		}catch(IOException ioEx){
 			ioEx.printStackTrace();

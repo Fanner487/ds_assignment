@@ -57,34 +57,13 @@ public class Server{
 }
 
 class ClientHandler extends Thread{
-	private Socket client;
+
 	private Bidder bidder;
 	private Scanner input;
 	private PrintWriter output;
-	private ArrayList<Socket> clients;
 	private ArrayList<Bidder> bidders;
 	private BidItem bidItem;
 
-
-	// Whenever clients send in bid, verify if it is bigger than current bid
-	
-
-
-	// public ClientHandler(Socket socket, ArrayList<Socket> clients, BidItem bidItem){
-	// 	//Set up reference to associated socket...
-	// 	this.clients = clients;
-	// 	client = socket;
-	// 	this.bidItem = bidItem;
-
-	// 	try{
-	// 		input = new Scanner(client.getInputStream());
-	// 		output = new PrintWriter(client.getOutputStream(),true);
-	// 	}
-	// 	catch(IOException ioEx)
-	// 	{
-	// 		ioEx.printStackTrace();
-	// 	}
-	// }
 
 	public ClientHandler(Bidder bidder, ArrayList<Bidder> bidders, BidItem bidItem){
 		//Set up reference to associated socket...
@@ -103,17 +82,13 @@ class ClientHandler extends Thread{
 	}
 
 	public void broadcast(String message){
+
+		// if(isValidBid(newBid)){
+			
+		// }
+
+		// Problem may lie in here with the loop
 		for(Bidder bi : bidders){
-			// if(cli != client){
-			// 	try{
-			// 		synchronized(this){
-			// 			output = new PrintWriter(cli.getOutputStream(),true);
-			// 			output.println("ECHO: " + message);
-			// 		}
-			// 	}catch(IOException e){
-			// 		e.printStackTrace();
-			// 	}
-			// }
 			
 			try{
 				synchronized(this){
@@ -122,20 +97,26 @@ class ClientHandler extends Thread{
 
 					int newBid = Integer.parseInt(message);
 
-					if(checkBidOverCurrent(newBid)){
+					System.out.println("Calling by: " + bi.getName());
+					if(isValidBid(newBid)){
 
 						bidItem.setCurrentBid(newBid);
 						bidItem.setCurrentBidder(bidder.getName());
 
-						output.println("Allowed: " + newBid);
-						output.println("Current bider: " + bidItem.getCurrentBidder());
+						// output.println("Allowed: " + newBid);
+						output.println("Current bidder: " + bidItem.getCurrentBidder());
 						output.println("Current bid: " + bidItem.getCurrentBid());
 
 					}
 					else{
-						output.println("Not Allowed: " + message);
-						output.println("Current bider: " + bidItem.getCurrentBidder());
-						output.println("Current bid: " + bidItem.getCurrentBid());
+						// output.println("Not Allowed: " + message);
+						PrintWriter tooLowOutput = new PrintWriter(bidder.getSocket().getOutputStream(),true);
+						if(bi == bidder){
+							tooLowOutput.println("Bid too low!");
+						}
+						
+						// output.println("Current bidder: " + bidItem.getCurrentBidder());
+						// output.println("Current bid: " + bidItem.getCurrentBid());
 					}
 					
 					
@@ -160,9 +141,9 @@ class ClientHandler extends Thread{
 		}while (!received.equals("QUIT"));
 
 		try{
-			if (client!=null){
+			if (bidder.getSocket() !=null){
 				System.out.println("Closing down connection...");
-				client.close();
+				bidder.getSocket().close();
 			}
 		}
 		catch(IOException ioEx){
@@ -170,7 +151,12 @@ class ClientHandler extends Thread{
 		}
 	}
 
-	private boolean checkBidOverCurrent(int input){
+	private boolean isValidBid(int input){
+
+		System.out.println("-----------\nIn isValidBid\n-------");
+		System.out.println("input: " + input);
+		System.out.println("current: " + this.bidItem.getCurrentBid());
+		System.out.println("------------------");
 
 		boolean result = false;
 
@@ -180,6 +166,8 @@ class ClientHandler extends Thread{
 		else{
 			result = false;
 		}
+
+		System.out.println(result);
 
 		return result;
 
