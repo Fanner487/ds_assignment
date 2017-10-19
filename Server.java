@@ -48,7 +48,8 @@ public class Server{
 			//Create a thread to handle communication with
 			//this client and pass the constructor for this
 			//thread a reference to the relevant socket...
-			ClientHandler handler = new ClientHandler(client, clients, bidItem);
+			// ClientHandler handler = new ClientHandler(client, clients, bidItem);
+			ClientHandler handler = new ClientHandler(bidder, bidders, bidItem);
 
 			handler.start();//As usual, this method calls run.
 		}while (true);
@@ -57,9 +58,11 @@ public class Server{
 
 class ClientHandler extends Thread{
 	private Socket client;
+	private Bidder bidder;
 	private Scanner input;
 	private PrintWriter output;
 	private ArrayList<Socket> clients;
+	private ArrayList<Bidder> bidders;
 	private BidItem bidItem;
 
 
@@ -67,15 +70,31 @@ class ClientHandler extends Thread{
 	
 
 
-	public ClientHandler(Socket socket, ArrayList<Socket> clients, BidItem bidItem){
+	// public ClientHandler(Socket socket, ArrayList<Socket> clients, BidItem bidItem){
+	// 	//Set up reference to associated socket...
+	// 	this.clients = clients;
+	// 	client = socket;
+	// 	this.bidItem = bidItem;
+
+	// 	try{
+	// 		input = new Scanner(client.getInputStream());
+	// 		output = new PrintWriter(client.getOutputStream(),true);
+	// 	}
+	// 	catch(IOException ioEx)
+	// 	{
+	// 		ioEx.printStackTrace();
+	// 	}
+	// }
+
+	public ClientHandler(Bidder bidder, ArrayList<Bidder> bidders, BidItem bidItem){
 		//Set up reference to associated socket...
-		this.clients = clients;
-		client = socket;
+		this.bidders = bidders;
+		this.bidder = bidder;
 		this.bidItem = bidItem;
 
 		try{
-			input = new Scanner(client.getInputStream());
-			output = new PrintWriter(client.getOutputStream(),true);
+			input = new Scanner(bidder.getSocket().getInputStream());
+			output = new PrintWriter(bidder.getSocket().getOutputStream(),true);
 		}
 		catch(IOException ioEx)
 		{
@@ -84,7 +103,7 @@ class ClientHandler extends Thread{
 	}
 
 	public void broadcast(String message){
-		for(Socket cli : clients){
+		for(Bidder bi : bidders){
 			// if(cli != client){
 			// 	try{
 			// 		synchronized(this){
@@ -99,20 +118,23 @@ class ClientHandler extends Thread{
 			try{
 				synchronized(this){
 
-					output = new PrintWriter(cli.getOutputStream(),true);
+					output = new PrintWriter(bi.getSocket().getOutputStream(),true);
 
 					int newBid = Integer.parseInt(message);
 
 					if(checkBidOverCurrent(newBid)){
 
 						bidItem.setCurrentBid(newBid);
+						bidItem.setCurrentBidder(bidder.getName());
 
 						output.println("Allowed: " + newBid);
+						output.println("Current bider: " + bidItem.getCurrentBidder());
 						output.println("Current bid: " + bidItem.getCurrentBid());
 
 					}
 					else{
 						output.println("Not Allowed: " + message);
+						output.println("Current bider: " + bidItem.getCurrentBidder());
 						output.println("Current bid: " + bidItem.getCurrentBid());
 					}
 					
